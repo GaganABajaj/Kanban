@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Application Kanban</title>
+<style>
+:root{--bg:#f4f6fb;--ink:#182230;--muted:#657184;--line:#e1e6ef;--panel:#fff;--accent:#315efb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{padding:22px 24px 16px;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}h1{font-size:23px;margin:0 0 3px;letter-spacing:-.4px}.sub{color:var(--muted);font-size:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}button,.button{border:1px solid #d7deea;background:#fff;color:#263247;border-radius:9px;padding:9px 12px;font-weight:650;cursor:pointer;font-size:12px}button.primary{background:var(--accent);border-color:var(--accent);color:#fff}button:hover,.button:hover{filter:brightness(.97)}button.danger{color:#b42318}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.stat{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:110px}.stat b{display:block;font-size:17px}.stat span{color:var(--muted);font-size:11px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 24px}.toolbar input{max-width:320px;flex:1;min-width:180px}.field, input,select,textarea{font:inherit;border:1px solid #d8deea;border-radius:8px;padding:9px 10px;background:white;color:var(--ink);width:100%}.toolbar select{width:auto}
+.board-wrap{padding:0 24px 28px;overflow-x:auto}.board{display:flex;align-items:flex-start;gap:13px;min-width:max-content}.column{width:285px;background:#e9edf5;border:1px solid #dfe5ef;border-radius:13px;min-height:300px;overflow:hidden}.col-head{padding:12px;background:#fff;border-bottom:1px solid var(--line);border-top:4px solid var(--col);border-radius:12px 12px 0 0}.col-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:750}.count{font-size:11px;color:var(--muted);background:#f0f3f8;border-radius:20px;padding:3px 7px}.col-sub{font-size:11px;color:var(--muted);margin-top:4px}.cards{padding:9px;min-height:220px}.cards.dragover{background:#dce6ff;outline:2px dashed #6487ff;outline-offset:-5px;border-radius:9px}.card{background:#fff;border:1px solid #e0e5ed;border-radius:11px;padding:12px;margin-bottom:9px;box-shadow:0 2px 4px #13203b08;cursor:grab}.card:active{cursor:grabbing}.card.dragging{opacity:.4}.card-top{display:flex;justify-content:space-between;gap:8px}.company{font-size:11px;color:#657184;font-weight:700;letter-spacing:.2px;text-transform:uppercase}.role{font-size:14px;font-weight:750;margin:3px 0 9px;line-height:1.3}.meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.pill{font-size:10px;background:#f1f4f9;color:#4a566a;border-radius:6px;padding:3px 6px}.card-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #edf0f5;padding-top:8px;margin-top:7px;color:var(--muted);font-size:11px}.iconbtn{padding:3px 7px;border:0;background:transparent;font-size:15px}.empty{color:#8490a2;text-align:center;font-size:12px;padding:24px 8px}.col-actions{display:flex;gap:4px}.notice{margin:0 24px 12px;padding:10px 12px;background:#fff8e6;border:1px solid #f2d28a;border-radius:9px;color:#795b14;font-size:12px}
+dialog{border:0;border-radius:16px;padding:0;width:min(650px,calc(100% - 24px));max-height:90vh;box-shadow:0 20px 70px #10182844}dialog::backdrop{background:#18223077}.modal-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modal-head h2{font-size:17px;margin:0}.modal-body{padding:18px 20px;overflow:auto;max-height:65vh}.modal-foot{padding:13px 20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-row label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}.form-row.full{grid-column:1/-1}.help{font-size:11px;color:var(--muted);margin-top:5px}.column-setting{display:grid;grid-template-columns:1fr 90px auto;gap:7px;margin-bottom:8px;align-items:center}.param-setting{display:grid;grid-template-columns:1fr 115px 90px auto;gap:7px;margin-bottom:8px;align-items:center}.section-title{font-size:13px;font-weight:800;margin:4px 0 10px}.settings-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}.hidden{display:none!important}
+@media(max-width:600px){header{padding:16px}.toolbar{padding:12px 16px}.board-wrap{padding:0 16px 22px}.notice{margin:0 16px 12px}.grid{grid-template-columns:1fr}.form-row.full{grid-column:auto}.column{width:270px}.param-setting{grid-template-columns:1fr 90px 70px auto}.stats{gap:6px}.stat{min-width:90px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="top"><div><h1 id="boardTitle">Job Application Tracker</h1><div class="sub">A flexible Kanban board · drag cards between stages · edit cards and board settings</div></div>
+ <div class="actions"><button onclick="openCard()">＋ Add application</button><button onclick="openSettings()">⚙ Board settings</button><button class="primary" onclick="exportAll()">Export all JSON</button></div></div>
+ <div class="stats" id="stats"></div>
+</header>
+<div class="toolbar"><input id="search" class="field" placeholder="Search company, role, notes…" oninput="renderBoard()"><select id="sort" onchange="renderBoard()"><option value="manual">Board order</option><option value="company">Company A–Z</option><option value="salary">Target compensation</option></select><button onclick="document.getElementById('filePicker').click()">Load JSON files</button><input id="filePicker" type="file" accept=".json,application/json" multiple class="hidden" onchange="loadFiles(event)"></div>
+<div class="notice">Your data is stored in this browser while you work. Use <b>Export all JSON</b> to download the three files and keep a backup. For a fresh session, load the exported JSON files again.</div>
+<main class="board-wrap"><div class="board" id="board"></div></main>
+<dialog id="cardDialog"><form id="cardForm" method="dialog"><div class="modal-head"><h2 id="cardDialogTitle">Add application</h2><button type="button" class="iconbtn" onclick="closeDialog('cardDialog')">✕</button></div><div class="modal-body"><div id="cardFields" class="grid"></div></div><div class="modal-foot"><button type="button" class="danger" id="deleteCardBtn" onclick="deleteCurrentCard()">Delete card</button><div><button type="button" onclick="closeDialog('cardDialog')">Cancel</button> <button class="primary" type="submit">Save application</button></div></div></form></dialog>
+<dialog id="settingsDialog"><div class="modal-head"><h2>Board settings</h2><button class="iconbtn" onclick="closeDialog('settingsDialog')">✕</button></div><div class="modal-body">
+ <div class="form-row"><label for="settingsTitle">Board title</label><input id="settingsTitle"></div>
+ <div class="section-title" style="margin-top:18px">Workflow columns</div><div class="help">Add, rename, reorder, recolor or remove stages. Removing a stage moves its cards to the first remaining stage.</div><div id="columnSettings" style="margin-top:10px"></div><div class="settings-actions"><button onclick="addColumn()">＋ Add column</button><button onclick="moveColumn(-1)">↑ Move selected up</button><button onclick="moveColumn(1)">↓ Move selected down</button></div>
+ <div class="section-title">Card fields</div><div class="help">Choose which fields appear on application cards. Field keys are used in the card-details JSON; keep keys unique.</div><div id="paramSettings" style="margin-top:10px"></div><div class="settings-actions"><button onclick="addParameter()">＋ Add field</button></div>
+ <div class="help">Changes are applied immediately when you press “Apply settings”. Export JSON afterward to keep the configuration.</div>
+ </div><div class="modal-foot"><button onclick="closeDialog('settingsDialog')">Cancel</button><button class="primary" onclick="applySettings()">Apply settings</button></div></dialog>
+<script>
+const defaults = {
+ config: {
+  boardTitle:"Job Application Tracker",
+  columns:[{id:"saved",name:"Saved / To Apply",color:"#64748b"},{id:"applied",name:"Applied",color:"#2563eb"},{id:"screening",name:"Screening",color:"#7c3aed"},{id:"interview",name:"Interview",color:"#d97706"},{id:"offer",name:"Offer",color:"#059669"},{id:"rejected",name:"Closed / Rejected",color:"#dc2626"}],
+  cardParameters:[{key:"company",label:"Company",type:"text",required:true},{key:"role",label:"Job title",type:"text",required:true},{key:"location",label:"Location",type:"text"},{key:"workMode",label:"Work mode",type:"select",options:["Remote","Hybrid","On-site","Flexible"]},{key:"salary",label:"Target compensation (LPA)",type:"number"},{key:"dateApplied",label:"Date applied",type:"date"},{key:"nextStep",label:"Next step",type:"text"},{key:"contact",label:"Contact / recruiter",type:"text"},{key:"jobUrl",label:"Job URL",type:"url"},{key:"notes",label:"Notes",type:"textarea"}]},
+ cards:[{id:"job-001",company:"Example AI Systems",role:"AI Solutions Analyst",location:"Pune, India",workMode:"Hybrid",salary:27,dateApplied:"",nextStep:"Tailor resume and apply",contact:"",jobUrl:"",notes:"Sample card — edit or delete this."},{id:"job-002",company:"Northstar Fintech",role:"Business Transformation Lead",location:"India",workMode:"Remote",salary:25,dateApplied:"2026-10-27",nextStep:"Follow up next week",contact:"Recruitment team",jobUrl:"",notes:"Sample card — replace with a real opportunity."},{id:"job-003",company:"Apex Mobility",role:"Process Excellence Manager",location:"Pune, India",workMode:"On-site",salary:24,dateApplied:"2026-10-24",nextStep:"Prepare interview examples",contact:"",jobUrl:"",notes:"Sample card — move between columns by dragging."}],
+ status:{cardColumns:{"job-001":"saved","job-002":"applied","job-003":"interview"}}
+};
+let config=structuredClone(defaults.config), cards=structuredClone(defaults.cards), status=structuredClone(defaults.status);
+let editingId=null, selectedColumn=0;
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function uid(){return "job-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)}
+function normalise(){if(!config.columns?.length)config.columns=[{id:"saved",name:"To Apply",color:"#64748b"}];if(!config.cardParameters)config.cardParameters=[];cards=cards.map(c=>c.id?c:{...c,id:uid()});cards.forEach(c=>{if(!status.cardColumns[c.id]||!config.columns.some(col=>col.id===status.cardColumns[c.id]))status.cardColumns[c.id]=config.columns[0].id});}
+function renderBoard(){
+ normalise();document.getElementById("boardTitle").textContent=config.boardTitle||"Job Application Tracker";
+ const q=document.getElementById("search").value.toLowerCase(), sort=document.getElementById("sort").value;
+ const board=document.getElementById("board");board.innerHTML="";
+ config.columns.forEach(col=>{
+  let list=cards.filter(c=>status.cardColumns[c.id]===col.id && JSON.stringify(c).toLowerCase().includes(q));
+  if(sort==="company")list.sort((a,b)=>(a.company||"").localeCompare(b.company||""));
+  if(sort==="salary")list.sort((a,b)=>(Number(b.salary)||0)-(Number(a.salary)||0));
+  const section=document.createElement("section");section.className="column";section.style.setProperty("--col",col.color||"#64748b");
+  section.innerHTML=`<div class="col-head"><div class="col-title"><span>${escapeHtml(col.name)}</span><span class="count">${cards.filter(c=>status.cardColumns[c.id]===col.id).length}</span></div><div class="col-sub">${list.length===1?"1 application":list.length+" matching applications"}</div></div><div class="cards" data-column="${escapeHtml(col.id)}"></div>`;
+  const container=section.querySelector(".cards");
+  if(!list.length)container.innerHTML='<div class="empty">Drop an application here</div>';
+  list.forEach(c=>container.appendChild(makeCard(c)));
+  container.addEventListener("dragover",e=>{e.preventDefault();container.classList.add("dragover")});
+  container.addEventListener("dragleave",()=>container.classList.remove("dragover"));
+  container.addEventListener("drop",e=>{e.preventDefault();container.classList.remove("dragover");const id=e.dataTransfer.getData("text/plain");if(cards.some(c=>c.id===id)){status.cardColumns[id]=col.id;renderBoard();}});
+  board.appendChild(section);
+ });
+ renderStats();
+}
+function makeCard(c){
+ const el=document.createElement("article");el.className="card";el.draggable=true;el.dataset.id=c.id;
+ el.addEventListener("dragstart",e=>{el.classList.add("dragging");e.dataTransfer.setData("text/plain",c.id);e.dataTransfer.effectAllowed="move"});
+ el.addEventListener("dragend",()=>el.classList.remove("dragging"));
+ const p=config.cardParameters, get=k=>c[k];
+ const company=get("company")||"Untitled company", role=get("role")||"Untitled role";
+ const loc=get("location"), mode=get("workMode"), salary=get("salary"), next=get("nextStep"), date=get("dateApplied");
+ let pills=[loc,mode,salary!==undefined&&salary!==""?`₹${escapeHtml(salary)} LPA`:null].filter(Boolean).map(x=>`<span class="pill">${escapeHtml(x)}</span>`).join("");
+ el.innerHTML=`<div class="card-top"><div class="company">${escapeHtml(company)}</div><button class="iconbtn" title="Edit application" aria-label="Edit application">✎</button></div><div class="role">${escapeHtml(role)}</div><div class="meta">${pills}</div>${next?`<div style="font-size:12px;color:#475467;margin-top:4px"><b>Next:</b> ${escapeHtml(next)}</div>`:""}<div class="card-foot"><span>${date?("Applied "+escapeHtml(date)):"Not applied yet"}</span><span>⠿ Drag</span></div>`;
+ el.querySelector("button").onclick=()=>openCard(c.id);el.ondblclick=()=>openCard(c.id);return el;
+}
+function renderStats(){const total=cards.length, applied=cards.filter(c=>status.cardColumns[c.id]!=="saved").length, interviews=cards.filter(c=>["interview","offer"].includes(status.cardColumns[c.id])).length, offers=cards.filter(c=>status.cardColumns[c.id]==="offer").length;
+ document.getElementById("stats").innerHTML=`<div class="stat"><b>${total}</b><span>Total applications</span></div><div class="stat"><b>${applied}</b><span>Moved beyond saved</span></div><div class="stat"><b>${interviews}</b><span>Interview / offer</span></div><div class="stat"><b>${offers}</b><span>Offers</span></div>`}
+function openCard(id=null){editingId=id;const c=id?cards.find(x=>x.id===id):{};document.getElementById("cardDialogTitle").textContent=id?"Edit application":"Add application";document.getElementById("deleteCardBtn").classList.toggle("hidden",!id);
+ const box=document.getElementById("cardFields");box.innerHTML="";
+ config.cardParameters.forEach(p=>{const row=document.createElement("div");row.className="form-row"+(p.type==="textarea"?" full":"");const label=document.createElement("label");label.textContent=p.label+(p.required?" *":"");label.htmlFor="field_"+p.key;row.appendChild(label);
+ let input;if(p.type==="textarea"){input=document.createElement("textarea");input.rows=3}else if(p.type==="select"){input=document.createElement("select");input.innerHTML='<option value="">— Select —</option>'+(p.options||[]).map(o=>`<option>${escapeHtml(o)}</option>`).join("")}else{input=document.createElement("input");input.type=["text","number","date","url","email"].includes(p.type)?p.type:"text"}
+ input.id="field_"+p.key;input.name=p.key;input.value=c[p.key]??"";if(p.required)input.required=true;row.appendChild(input);box.appendChild(row)});
+ document.getElementById("cardDialog").showModal();
+}
+document.getElementById("cardForm").addEventListener("submit",e=>{e.preventDefault();const form=new FormData(e.target), obj={};config.cardParameters.forEach(p=>{let v=form.get(p.key);if(p.type==="number"&&v!=="")v=Number(v);obj[p.key]=v??""});
+ if(editingId){const i=cards.findIndex(c=>c.id===editingId);cards[i]={...cards[i],...obj}}else{const id=uid();cards.push({id,...obj});status.cardColumns[id]=config.columns[0].id}
+ closeDialog("cardDialog");renderBoard();});
+function deleteCurrentCard(){if(!editingId||!confirm("Delete this application permanently from the current board data?"))return;cards=cards.filter(c=>c.id!==editingId);delete status.cardColumns[editingId];closeDialog("cardDialog");renderBoard()}
+function closeDialog(id){document.getElementById(id).close()}
+function openSettings(){document.getElementById("settingsTitle").value=config.boardTitle||"";renderColumnSettings();renderParamSettings();document.getElementById("settingsDialog").showModal()}
+function renderColumnSettings(){const box=document.getElementById("columnSettings");box.innerHTML="";config.columns.forEach((c,i)=>{const row=document.createElement("div");row.className="column-setting";row.innerHTML=`<input aria-label="Column name" value="${escapeHtml(c.name)}"><input aria-label="Column color" type="color" value="${escapeHtml(c.color||"#64748b")}"><button class="danger">Remove</button>`;row.querySelector("input").onchange=e=>c.name=e.target.value;row.querySelectorAll("input")[1].oninput=e=>c.color=e.target.value;row.querySelector("button").onclick=()=>{if(config.columns.length===1){alert("Keep at least one column.");return}const fallback=config.columns.find(x=>x.id!==c.id);cards.forEach(card=>{if(status.cardColumns[card.id]===c.id)status.cardColumns[card.id]=fallback.id});config.columns=config.columns.filter(x=>x.id!==c.id);selectedColumn=Math.min(selectedColumn,config.columns.length-1);renderColumnSettings()};row.onclick=()=>selectedColumn=i;box.appendChild(row)})}
+function addColumn(){const name=prompt("New column name:","New stage");if(!name)return;let id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-")+"-"+Date.now().toString(36);config.columns.push({id,name,color:"#64748b"});selectedColumn=config.columns.length-1;renderColumnSettings()}
+function moveColumn(dir){const i=selectedColumn,j=i+dir;if(j<0||j>=config.columns.length)return;[config.columns[i],config.columns[j]]=[config.columns[j],config.columns[i]];selectedColumn=j;renderColumnSettings()}
+function renderParamSettings(){const box=document.getElementById("paramSettings");box.innerHTML="";config.cardParameters.forEach((p,i)=>{const row=document.createElement("div");row.className="param-setting";row.innerHTML=`<input aria-label="Field label" value="${escapeHtml(p.label)}" placeholder="Label"><select aria-label="Field type"><option value="text">Text</option><option value="textarea">Long text</option><option value="number">Number</option><option value="date">Date</option><option value="url">URL</option><option value="select">Dropdown</option></select><label style="font-size:11px"><input type="checkbox" ${p.required?"checked":""} style="width:auto"> Required</label><button class="danger">×</button>`;row.querySelector("input").onchange=e=>p.label=e.target.value;row.querySelector("select").value=p.type||"text";row.querySelector("select").onchange=e=>{p.type=e.target.value;if(p.type==="select"&&!p.options)p.options=["Option 1","Option 2"]};row.querySelector('input[type=checkbox]').onchange=e=>p.required=e.target.checked;row.querySelector("button").onclick=()=>{config.cardParameters=config.cardParameters.filter(x=>x.key!==p.key);renderParamSettings()};box.appendChild(row)})}
+function addParameter(){let label=prompt("Field label:","New field");if(!label)return;let key=label.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");if(!key)key="field_"+Date.now();if(config.cardParameters.some(p=>p.key===key)){alert("That field key already exists. Choose a different label.");return}config.cardParameters.push({key,label,type:"text",required:false});renderParamSettings()}
+function applySettings(){config.boardTitle=document.getElementById("settingsTitle").value.trim()||"Job Application Tracker";closeDialog("settingsDialog");normalise();renderBoard()}
+function download(name,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportAll(){download("board-config.json",config);download("board-status.json",status);download("card-details.json",cards)}
+async function loadFiles(event){const files=[...event.target.files];for(const f of files){try{const data=JSON.parse(await f.text()),n=f.name.toLowerCase();if(n.includes("config")){config=data;alert("Loaded board configuration.")}else if(n.includes("status")){status=data;alert("Loaded board status.")}else if(n.includes("card")||Array.isArray(data)){cards=Array.isArray(data)?data:(data.cards||[]);alert("Loaded card details.")}else{alert("Could not identify "+f.name+". Name files with config, status, or card.");}}catch(e){alert("Could not read "+f.name+": "+e.message)}}normalise();renderBoard();event.target.value=""}
+normalise();renderBoard();
+</script>
+</body>
+</html>
